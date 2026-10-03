@@ -1,6 +1,28 @@
 {
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
-    "firebase": "^12.19.0"
-  }
+    "axios": "^1.20.0",
+    "express": "^5.2.1",
+    "firebase": "^12.19.0",
+    "firebase-admin": "^14.5.0"
+  },
+  "name": "tecer-firebase",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Teodoro11Kauan/tecer-planner.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Teodoro11Kauan/tecer-planner/issues"
+  },
+  "homepage": "https://github.com/Teodoro11Kauan/tecer-planner#readme"
 }
