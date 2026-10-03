@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tecer - Seu Hub de Tarefas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { tecer: { 50: '#faf5ff', 100: '#f3e8ff', 500: '#a855f7', 600: '#9333ea', 900: '#581c87' } } }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 transition-colors duration-300 min-h-screen flex font-sans">
+
+    <!-- Menu Lateral -->
+    <aside class="w-64 bg-tecer-900 text-white flex flex-col transition-colors">
+        <div class="p-6 flex items-center gap-3">
+            <i class="fa-solid fa-layer-group text-2xl text-tecer-500"></i>
+            <h1 class="text-2xl font-bold tracking-wider">Tecer</h1>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 mt-4" id="nav-menu">
+            <button onclick="navigate('visao-geral', this)" class="nav-btn w-full flex items-center gap-3 bg-tecer-600 px-4 py-3 rounded-lg transition text-left">
+                <i class="fa-solid fa-house w-5"></i> Visão Geral
+            </button>
+            <button onclick="navigate('calendario', this)" class="nav-btn w-full flex items-center gap-3 hover:bg-tecer-600/50 text-tecer-100 px-4 py-3 rounded-lg transition text-left">
+                <i class="fa-solid fa-calendar-days w-5"></i> Calendário
+            </button>
+            <button onclick="navigate('disciplinas', this)" class="nav-btn w-full flex items-center gap-3 hover:bg-tecer-600/50 text-tecer-100 px-4 py-3 rounded-lg transition text-left">
+                <i class="fa-solid fa-book w-5"></i> Disciplinas
+            </button>
+        </nav>
+        <div class="p-4 text-sm text-tecer-100/50 border-t border-tecer-600/30">
+            <p><i class="fa-brands fa-telegram text-tecer-500 mr-2"></i> Bot Online</p>
+        </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h2 id="page-title" class="text-3xl font-bold text-slate-800 dark:text-white transition-colors">Visão Geral</h2>
+                <p id="page-subtitle" class="text-slate-500 dark:text-slate-400 mt-1 transition-colors">Carregando tarefas...</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block"></i>
+                </button>
+                <button class="bg-tecer-600 hover:bg-tecer-500 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-tecer-500/30 transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Nova Tarefa
+                </button>
+            </div>
+        </header>
+
+        <!-- SEÇÃO: Visão Geral -->
+        <section id="visao-geral" class="page-section block">
+            <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden transition-colors">
+                <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-white">Próximas Entregas</h3>
+                    <span class="text-xs font-medium bg-tecer-100 dark:bg-tecer-900/50 text-tecer-600 dark:text-tecer-300 px-3 py-1 rounded-full"><i class="fa-brands fa-telegram mr-1"></i> Sincronizado</span>
+                </div>
+                <!-- Lista Dinâmica -->
+                <div id="lista-tarefas" class="divide-y divide-slate-100 dark:divide-slate-700">
+                    <div class="p-8 text-center text-slate-500">Conectando ao banco de dados...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO: Calendário -->
+        <section id="calendario" class="page-section hidden">
+            <div class="bg-white dark:bg-slate-800 p-10 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center transition-colors">
+                <div class="text-tecer-100 dark:text-slate-700 text-6xl mb-4"><i class="fa-regular fa-calendar"></i></div>
+                <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Visão de Calendário</h3>
+                <p class="text-slate-500 dark:text-slate-400 max-w-md mx-auto">Em breve: Integração com calendário para visualizar tarefas do mês.</p>
+            </div>
+        </section>
+
+        <!-- SEÇÃO: Disciplinas -->
+        <section id="disciplinas" class="page-section hidden">
+            <div class="bg-white dark:bg-slate-800 p-10 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center transition-colors">
+                <div class="text-tecer-100 dark:text-slate-700 text-6xl mb-4"><i class="fa-solid fa-book"></i></div>
+                <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Suas Disciplinas</h3>
+                <p class="text-slate-500 dark:text-slate-400 max-w-md mx-auto">Em breve: Gerenciamento de matérias e notas.</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Lógica de Alternância de Tema
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        // Lógica de Navegação
+        const titles = {
+            'visao-geral': { title: 'Visão Geral', sub: 'Carregando tarefas...' },
+            'calendario': { title: 'Seu Calendário', sub: 'Visualize seus prazos no mês.' },
+            'disciplinas': { title: 'Disciplinas', sub: 'Gerencie matérias e notas.' }
+        };
+
+        function navigate(sectionId, btnElement) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+
+            document.getElementById('page-title').innerText = titles[sectionId].title;
+            if(sectionId !== 'visao-geral') {
+                document.getElementById('page-subtitle').innerText = titles[sectionId].sub;
+            } else {
+                document.getElementById('page-subtitle').innerText = titles['visao-geral'].sub;
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-tecer-600', 'text-white');
+                btn.classList.add('text-tecer-100', 'hover:bg-tecer-600/50');
+            });
+            btnElement.classList.remove('text-tecer-100', 'hover:bg-tecer-600/50');
+            btnElement.classList.add('bg-tecer-600', 'text-white');
+        }
+    </script>
+
+    <!-- Configuração do Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        // IMPORTANTE: Vá ao console do Firebase > Configurações do Projeto > Role até o final para pegar essas chaves
+        const firebaseConfig = {
+            apiKey: "COLE_SUA_API_KEY_AQUI",
+            authDomain: "tecer-planner.firebaseapp.com",
+            projectId: "tecer-planner",
+            storageBucket: "tecer-planner.appspot.com",
+            messagingSenderId: "COLE_SEU_MESSAGING_SENDER_ID_AQUI",
+            appId: "COLE_SEU_APP_ID_AQUI"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        onSnapshot(collection(db, "tarefas"), (snapshot) => {
+            const lista = document.getElementById('lista-tarefas');
+            lista.innerHTML = ''; 
+            let pendentes = 0;
+
+            if(snapshot.empty) {
+                lista.innerHTML = '<div class="p-8 text-center text-slate-500">Nenhuma tarefa encontrada. Mande uma no Telegram!</div>';
+                const emptyText = "Você não tem tarefas pendentes.";
+                titles['visao-geral'].sub = emptyText;
+                if(document.getElementById('visao-geral').classList.contains('block')) {
+                    document.getElementById('page-subtitle').innerText = emptyText;
+                }
+                return;
+            }
+
+            snapshot.forEach((docSnap) => {
+                const tarefa = docSnap.data();
+                const id = docSnap.id;
+                
+                if(!tarefa.concluida) pendentes++;
+
+                const div = document.createElement('div');
+                div.className = `p-5 transition flex items-center justify-between group ${tarefa.concluida ? 'bg-slate-50 dark:bg-slate-800/50 opacity-50' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'}`;
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <input type="checkbox" ${tarefa.concluida ? 'checked' : ''} class="check-tarefa w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-tecer-600 focus:ring-tecer-500 cursor-pointer bg-transparent" data-id="${id}">
+                        <div>
+                            <h4 class="font-semibold text-slate-800 dark:text-white ${tarefa.concluida ? 'line-through' : ''}">${tarefa.titulo}</h4>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5"><i class="fa-solid fa-tag text-xs mr-1"></i> ${tarefa.materia}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-block bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold px-2 py-1 rounded mb-1">${tarefa.prazo}</span>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+
+            const subtitleText = `Você tem ${pendentes} tarefa(s) pendente(s).`;
+            titles['visao-geral'].sub = subtitleText;
+            if(document.getElementById('visao-geral').classList.contains('block')) {
+                document.getElementById('page-subtitle').innerText = subtitleText;
+            }
+
+            // Atualiza status no Firebase ao clicar na checkbox
+            document.querySelectorAll('.check-tarefa').forEach(checkbox => {
+                checkbox.addEventListener('change', async (e) => {
+                    const tarefaId = e.target.getAttribute('data-id');
+                    await updateDoc(doc(db, "tarefas", tarefaId), { concluida: e.target.checked });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
