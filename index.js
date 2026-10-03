@@ -1,14 +1,17 @@
 const express = require('express');
-const admin = require('firebase-admin');
 const axios = require('axios');
+// Sintaxe moderna do Firebase Admin
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
-// O Render vai ler o ficheiro secreto que adicionou manualmente no painel
+// Lê o ficheiro secreto
 const serviceAccount = require('./serviceAccountKey.json');
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+// Inicializa o Firebase com a nova sintaxe
+initializeApp({
+  credential: cert(serviceAccount)
 });
-const db = admin.firestore();
+const db = getFirestore();
 
 const app = express();
 app.use(express.json());
@@ -18,7 +21,7 @@ const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 
 app.post('/webhook', async (req, res) => {
     const message = req.body.message;
-
+    
     if (message && message.text) {
         const text = message.text;
         const chatId = message.chat.id;
@@ -33,7 +36,7 @@ app.post('/webhook', async (req, res) => {
                 // Guarda na base de dados
                 await db.collection('tarefas').add({
                     titulo, prazo, materia, concluida: false,
-                    criadoEm: admin.firestore.FieldValue.serverTimestamp(),
+                    criadoEm: FieldValue.serverTimestamp(),
                     origem: 'Telegram'
                 });
 
