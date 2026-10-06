@@ -11,6 +11,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "build": "echo \"Sem etapa de build (hosting estatico)\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

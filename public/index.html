@@ -1,199 +1,339 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tecer - Seu Hub de Tarefas</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: { colors: { tecer: { 50: '#faf5ff', 100: '#f3e8ff', 500: '#a855f7', 600: '#9333ea', 900: '#581c87' } } }
-            }
-        }
-    </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tecer - Seu Hub de Tarefas</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+tailwind.config={darkMode:'class',theme:{extend:{colors:{tecer:{50:'#faf5ff',100:'#f3e8ff',500:'#a855f7',600:'#9333ea',900:'#581c87'}}}}};
+if(localStorage.tema==='dark')document.documentElement.classList.add('dark');
+</script>
+<style>
+.chip{touch-action:none;cursor:grab}
+.inp{width:100%;border:1px solid #cbd5e1;border-radius:.5rem;padding:.55rem .75rem;background:transparent;min-height:44px}
+.dark .inp{border-color:#475569}.dark .inp option{color:#000}
+.drop{outline:2px solid #a855f7;background:#f3e8ff66}
+.nb{padding-bottom:env(safe-area-inset-bottom)}
+#ed ul{list-style:disc;padding-left:1.25rem}
+</style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 transition-colors duration-300 min-h-screen flex font-sans">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-sans">
 
-    <!-- Menu Lateral -->
-    <aside class="w-64 bg-tecer-900 text-white flex flex-col transition-colors">
-        <div class="p-6 flex items-center gap-3">
-            <i class="fa-solid fa-layer-group text-2xl text-tecer-500"></i>
-            <h1 class="text-2xl font-bold tracking-wider">Tecer</h1>
-        </div>
-        <nav class="flex-1 px-4 space-y-2 mt-4" id="nav-menu">
-            <button onclick="navigate('visao-geral', this)" class="nav-btn w-full flex items-center gap-3 bg-tecer-600 px-4 py-3 rounded-lg transition text-left">
-                <i class="fa-solid fa-house w-5"></i> Visão Geral
-            </button>
-            <button onclick="navigate('calendario', this)" class="nav-btn w-full flex items-center gap-3 hover:bg-tecer-600/50 text-tecer-100 px-4 py-3 rounded-lg transition text-left">
-                <i class="fa-solid fa-calendar-days w-5"></i> Calendário
-            </button>
-            <button onclick="navigate('disciplinas', this)" class="nav-btn w-full flex items-center gap-3 hover:bg-tecer-600/50 text-tecer-100 px-4 py-3 rounded-lg transition text-left">
-                <i class="fa-solid fa-book w-5"></i> Disciplinas
-            </button>
-        </nav>
-        <div class="p-4 text-sm text-tecer-100/50 border-t border-tecer-600/30">
-            <p><i class="fa-brands fa-telegram text-tecer-500 mr-2"></i> Bot Online</p>
-        </div>
-    </aside>
+<!-- Login / Cadastro -->
+<div id="auth" class="hidden min-h-screen grid place-items-center p-4">
+  <div class="w-full max-w-sm bg-white dark:bg-slate-800 rounded-xl shadow p-6 space-y-3">
+    <h1 class="text-2xl font-bold text-tecer-600"><i class="fa-solid fa-layer-group mr-2"></i>Tecer</h1>
+    <input id="a-nome" class="inp hidden" placeholder="Nome de usuário">
+    <input id="a-email" type="email" class="inp" placeholder="E-mail">
+    <input id="a-senha" type="password" class="inp" placeholder="Senha (mín. 6 caracteres)">
+    <p id="a-erro" class="text-sm text-red-500"></p>
+    <button id="a-btn" data-act="auth" class="w-full bg-tecer-600 text-white rounded-lg py-2.5 font-medium">Entrar</button>
+    <button id="a-troca" data-act="authmode" class="w-full text-sm text-tecer-600">Criar conta</button>
+  </div>
+</div>
 
-    <!-- Conteúdo Principal -->
-    <main class="flex-1 p-8 overflow-y-auto">
-        <header class="flex justify-between items-center mb-8">
-            <div>
-                <h2 id="page-title" class="text-3xl font-bold text-slate-800 dark:text-white transition-colors">Visão Geral</h2>
-                <p id="page-subtitle" class="text-slate-500 dark:text-slate-400 mt-1 transition-colors">Carregando tarefas...</p>
-            </div>
-            <div class="flex gap-4">
-                <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition">
-                    <i class="fa-solid fa-moon dark:hidden"></i>
-                    <i class="fa-solid fa-sun hidden dark:block"></i>
-                </button>
-                <button class="bg-tecer-600 hover:bg-tecer-500 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-tecer-500/30 transition flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i> Nova Tarefa
-                </button>
-            </div>
-        </header>
+<div id="app" class="hidden min-h-screen flex">
+  <aside class="hidden md:flex w-64 bg-tecer-900 text-white flex-col shrink-0">
+    <div class="p-6 flex items-center gap-3"><i class="fa-solid fa-layer-group text-2xl text-tecer-500"></i><h1 class="text-2xl font-bold tracking-wider">Tecer</h1></div>
+    <nav class="flex-1 px-4 space-y-2 mt-4" id="side"></nav>
+  </aside>
 
-        <!-- SEÇÃO: Visão Geral -->
-        <section id="visao-geral" class="page-section block">
-            <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden transition-colors">
-                <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-white">Próximas Entregas</h3>
-                    <span class="text-xs font-medium bg-tecer-100 dark:bg-tecer-900/50 text-tecer-600 dark:text-tecer-300 px-3 py-1 rounded-full"><i class="fa-brands fa-telegram mr-1"></i> Sincronizado</span>
-                </div>
-                <!-- Lista Dinâmica -->
-                <div id="lista-tarefas" class="divide-y divide-slate-100 dark:divide-slate-700">
-                    <div class="p-8 text-center text-slate-500">Conectando ao banco de dados...</div>
-                </div>
-            </div>
-        </section>
+  <main class="flex-1 min-w-0 p-4 md:p-8 pb-28 md:pb-8">
+    <header class="flex justify-between items-center mb-6 gap-3">
+      <div class="min-w-0">
+        <h2 id="titulo" class="text-2xl md:text-3xl font-bold truncate"></h2>
+        <p id="sub" class="text-slate-500 dark:text-slate-400 mt-1 text-sm"></p>
+      </div>
+      <div class="flex gap-2 shrink-0">
+        <button data-act="tema" aria-label="Alternar tema" class="w-11 h-11 rounded-full bg-slate-200 dark:bg-slate-800"><i class="fa-solid fa-circle-half-stroke"></i></button>
+        <button id="avatar" data-act="config" aria-label="Configurações" class="w-11 h-11 rounded-full bg-tecer-600 text-white font-bold overflow-hidden"></button>
+      </div>
+    </header>
+    <div id="view"></div>
+  </main>
 
-        <!-- SEÇÃO: Calendário -->
-        <section id="calendario" class="page-section hidden">
-            <div class="bg-white dark:bg-slate-800 p-10 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center transition-colors">
-                <div class="text-tecer-100 dark:text-slate-700 text-6xl mb-4"><i class="fa-regular fa-calendar"></i></div>
-                <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Visão de Calendário</h3>
-                <p class="text-slate-500 dark:text-slate-400 max-w-md mx-auto">Em breve: Integração com calendário para visualizar tarefas do mês.</p>
-            </div>
-        </section>
+  <nav id="bottom" class="nb md:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex"></nav>
+  <button data-act="new" aria-label="Nova tarefa" class="fixed right-4 bottom-20 md:bottom-6 md:right-6 w-14 h-14 rounded-full bg-tecer-600 hover:bg-tecer-500 text-white shadow-lg shadow-tecer-500/40 text-xl z-40"><i class="fa-solid fa-plus"></i></button>
+</div>
 
-        <!-- SEÇÃO: Disciplinas -->
-        <section id="disciplinas" class="page-section hidden">
-            <div class="bg-white dark:bg-slate-800 p-10 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center transition-colors">
-                <div class="text-tecer-100 dark:text-slate-700 text-6xl mb-4"><i class="fa-solid fa-book"></i></div>
-                <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Suas Disciplinas</h3>
-                <p class="text-slate-500 dark:text-slate-400 max-w-md mx-auto">Em breve: Gerenciamento de matérias e notas.</p>
-            </div>
-        </section>
-    </main>
+<div id="modal" data-act="closebg" class="hidden fixed inset-0 z-50 bg-black/50 flex items-end md:items-center justify-center">
+  <div id="mbox" class="bg-white dark:bg-slate-800 w-full md:max-w-lg rounded-t-2xl md:rounded-2xl max-h-[92vh] overflow-y-auto p-5"></div>
+</div>
 
-    <script>
-        // Lógica de Alternância de Tema
-        function toggleTheme() {
-            document.documentElement.classList.toggle('dark');
-        }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getFirestore, collection, onSnapshot, doc, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-        // Lógica de Navegação
-        const titles = {
-            'visao-geral': { title: 'Visão Geral', sub: 'Carregando tarefas...' },
-            'calendario': { title: 'Seu Calendário', sub: 'Visualize seus prazos no mês.' },
-            'disciplinas': { title: 'Disciplinas', sub: 'Gerencie matérias e notas.' }
-        };
+// Cole aqui as chaves do Firebase (Console > Configurações do projeto > Seus apps > Web)
+const firebaseConfig = {
+  apiKey: "AIzaSyCi8OkJFRZR38BRTA5AxQt79Zt0i-rp-qM",
+  authDomain: "tecer-planner.firebaseapp.com",
+  projectId: "tecer-planner",
+  storageBucket: "tecer-planner.appspot.com",
+  messagingSenderId: "749177251738",
+  appId: "1:749177251738:web:6a6c126dec17e59d4d7c23"
+};
+const fb = initializeApp(firebaseConfig), auth = getAuth(fb), db = getFirestore(fb);
 
-        function navigate(sectionId, btnElement) {
-            document.querySelectorAll('.page-section').forEach(sec => sec.classList.add('hidden'));
-            document.getElementById(sectionId).classList.remove('hidden');
+/* ---------- estado e utilitários ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+let U, P = {}, T = [], TG = [], G = [], unsubs = [], page = 'home', discId = null, histF = 'all', regMode = false;
+let cal = new Date(), calMode = 'month';
+const col = n => collection(db, 'users', U.uid, n);
+const ref = (n, id) => doc(db, 'users', U.uid, n, id);
+const PR = {baixa:['Baixa','bg-emerald-500'], media:['Média','bg-amber-500'], alta:['Alta','bg-red-500']};
+const EF = {rapido:'Rápido', normal:'Normal', foco:'Foco profundo'};
+const dueD = t => (t.prazo && /^\d{4}-\d\d-\d\d/.test(t.prazo)) ? new Date(t.prazo.length > 10 ? t.prazo : t.prazo + 'T23:59:59') : null;
+const late = t => !t.concluida && dueD(t) && dueD(t) < new Date();
+const lbl = t => { const d = dueD(t); return d ? d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}) + (t.prazo.length > 10 ? ' ' + t.prazo.slice(11,16) : '') : (t.prazo || 'Sem prazo'); };
+const media = d => { const a = (d.avaliacoes || []).filter(x => x.nota !== null && x.nota !== '' && x.peso > 0); const p = a.reduce((s,x) => s + x.peso, 0); return p ? a.reduce((s,x) => s + x.nota * x.peso, 0) / p : null; };
+const clean = h => { const t = document.createElement('template'); t.innerHTML = h; t.content.querySelectorAll('*').forEach(n => { if (!/^(B|I|U|UL|LI|BR|DIV|P)$/.test(n.tagName)) n.replaceWith(...n.childNodes); else [...n.attributes].forEach(a => n.removeAttribute(a.name)); }); return t.innerHTML; };
+const tagChip = t => `<span class="px-2 py-0.5 rounded-full text-white text-xs" style="background:${esc(t.cor)}">${esc(t.nome)}</span>`;
+const openM = h => { $('#mbox').innerHTML = h; $('#modal').classList.remove('hidden'); };
+const closeM = () => $('#modal').classList.add('hidden');
 
-            document.getElementById('page-title').innerText = titles[sectionId].title;
-            if(sectionId !== 'visao-geral') {
-                document.getElementById('page-subtitle').innerText = titles[sectionId].sub;
-            } else {
-                document.getElementById('page-subtitle').innerText = titles['visao-geral'].sub;
-            }
+/* ---------- autenticação ---------- */
+onAuthStateChanged(auth, u => {
+  unsubs.forEach(f => f()); unsubs = []; U = u;
+  $('#auth').classList.toggle('hidden', !!u); $('#app').classList.toggle('hidden', !u);
+  if (!u) return;
+  unsubs = [
+    onSnapshot(doc(db, 'users', u.uid), s => { P = s.data() || {}; head(); }),
+    onSnapshot(col('tarefas'), s => { T = s.docs.map(d => ({id: d.id, ...d.data()})); render(); }),
+    onSnapshot(col('tags'), s => { TG = s.docs.map(d => ({id: d.id, ...d.data()})); render(); }),
+    onSnapshot(col('disciplinas'), s => { G = s.docs.map(d => ({id: d.id, ...d.data()})); render(); })
+  ];
+});
 
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('bg-tecer-600', 'text-white');
-                btn.classList.add('text-tecer-100', 'hover:bg-tecer-600/50');
-            });
-            btnElement.classList.remove('text-tecer-100', 'hover:bg-tecer-600/50');
-            btnElement.classList.add('bg-tecer-600', 'text-white');
-        }
-    </script>
+/* ---------- navegação ---------- */
+const NAV = [['home','Início','fa-house'], ['cal','Calendário','fa-calendar-days'], ['disc','Disciplinas','fa-book'], ['hist','Histórico','fa-clock-rotate-left']];
+function head() {
+  $('#avatar').innerHTML = P.foto ? `<img src="${P.foto}" class="w-full h-full object-cover" alt="">` : esc((P.nome || '?')[0].toUpperCase());
+  $('#side').innerHTML = NAV.map(([p,n,i]) => `<button data-act="go" data-p="${p}" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left ${page===p?'bg-tecer-600':'text-tecer-100 hover:bg-tecer-600/50'}"><i class="fa-solid ${i} w-5"></i>${n}</button>`).join('');
+  $('#bottom').innerHTML = NAV.map(([p,n,i]) => `<button data-act="go" data-p="${p}" class="flex-1 py-2 text-xs flex flex-col items-center gap-1 ${page===p?'text-tecer-600 font-bold':'text-slate-500'}"><i class="fa-solid ${i} text-lg"></i>${n}</button>`).join('');
+}
 
-    <!-- Configuração do Firebase -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+/* ---------- renderização ---------- */
+function taskRow(t) {
+  const L = late(t), tg = (t.tagIds || []).map(i => TG.find(x => x.id === i)).filter(Boolean), d = G.find(x => x.id === t.disciplinaId), st = t.subtarefas || [];
+  return `<div class="p-4 flex gap-3 items-start ${L ? 'border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30' : ''} ${t.concluida ? 'opacity-60' : ''}">
+    <input type="checkbox" data-act="toggle" data-id="${t.id}" ${t.concluida ? 'checked' : ''} class="mt-1 w-5 h-5 accent-purple-600 shrink-0">
+    <div class="flex-1 min-w-0 cursor-pointer" data-act="edit" data-id="${t.id}">
+      <h4 class="${L ? 'font-bold text-red-600 dark:text-red-400' : 'font-semibold'} ${t.concluida ? 'line-through' : ''}">${L ? '<i class="fa-solid fa-triangle-exclamation mr-1"></i>' : ''}${esc(t.titulo)}</h4>
+      <div class="flex flex-wrap items-center gap-1.5 mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <span class="${L ? 'text-red-600 font-bold' : ''}"><i class="fa-regular fa-clock mr-1"></i>${esc(lbl(t))}</span>
+        ${PR[t.prioridade] ? `<span><i class="inline-block w-2 h-2 rounded-full ${PR[t.prioridade][1]} mr-1"></i>${PR[t.prioridade][0]}</span>` : ''}
+        ${t.esforco === 'foco' || t.esforco === 'rapido' ? `<span><i class="fa-solid fa-bolt mr-1"></i>${EF[t.esforco]}</span>` : ''}
+        ${st.length ? `<span><i class="fa-regular fa-square-check mr-1"></i>${st.filter(s => s.ok).length}/${st.length}</span>` : ''}
+        ${d ? `<span><i class="fa-solid fa-book mr-1"></i>${esc(d.nome)}</span>` : (t.materia && t.materia !== 'Geral' ? `<span>${esc(t.materia)}</span>` : '')}
+        ${tg.map(tagChip).join('')}
+      </div></div></div>`;
+}
+const box = h => `<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">${h}</div>`;
+const byDue = (a, b) => (a.prazo || '9') < (b.prazo || '9') ? -1 : 1;
 
-        // IMPORTANTE: Vá ao console do Firebase > Configurações do Projeto > Role até o final para pegar essas chaves
-        const firebaseConfig = {
-            apiKey: "COLE_SUA_API_KEY_AQUI",
-            authDomain: "tecer-planner.firebaseapp.com",
-            projectId: "tecer-planner",
-            storageBucket: "tecer-planner.appspot.com",
-            messagingSenderId: "COLE_SEU_MESSAGING_SENDER_ID_AQUI",
-            appId: "COLE_SEU_APP_ID_AQUI"
-        };
+function render() {
+  if (!U) return; head();
+  const open = T.filter(t => !t.concluida), n = open.filter(late).length;
+  const S = {home:['Visão Geral', `${open.length} pendente(s)${n ? ` · ${n} atrasada(s)` : ''}`], cal:['Calendário', 'Toque num dia para adicionar; arraste tarefas para mudar a data.'], disc:['Disciplinas', 'Tarefas, avaliações e médias.'], hist:['Histórico', 'Tarefas concluídas.']}[page];
+  $('#titulo').textContent = S[0]; $('#sub').textContent = S[1];
+  $('#view').innerHTML = {home: vHome, cal: vCal, disc: vDisc, hist: vHist}[page]();
+}
+const vHome = () => { const l = T.filter(t => !t.concluida).sort(byDue); return box(`<div class="divide-y divide-slate-100 dark:divide-slate-700">${l.map(taskRow).join('') || '<p class="p-8 text-center text-slate-500">Nenhuma tarefa pendente. Toque em + para criar uma.</p>'}</div>`); };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+function vHist() {
+  const l = T.filter(t => t.concluida && (histF === 'all' || (histF === 'geral' ? !t.disciplinaId : histF === 'disc' ? t.disciplinaId : t.disciplinaId === histF))).sort((a, b) => (b.concluidaEm?.seconds || 0) - (a.concluidaEm?.seconds || 0));
+  const f = [['all','Todas'], ['geral','Gerais'], ['disc','Disciplinas']];
+  return `<div class="flex flex-wrap gap-2 mb-4">${f.map(([k,n]) => `<button data-act="hf" data-k="${k}" class="px-3 py-2 rounded-full text-sm ${histF===k?'bg-tecer-600 text-white':'bg-slate-200 dark:bg-slate-700'}">${n}</button>`).join('')}
+    <select data-act="hfsel" class="inp !w-auto !py-1"><option value="">Uma disciplina...</option>${G.map(d => `<option value="${d.id}" ${histF===d.id?'selected':''}>${esc(d.nome)}</option>`).join('')}</select></div>`
+    + box(`<div class="divide-y divide-slate-100 dark:divide-slate-700">${l.map(taskRow).join('') || '<p class="p-8 text-center text-slate-500">Nada concluído neste filtro ainda.</p>'}</div>`);
+}
 
-        onSnapshot(collection(db, "tarefas"), (snapshot) => {
-            const lista = document.getElementById('lista-tarefas');
-            lista.innerHTML = ''; 
-            let pendentes = 0;
+/* calendário */
+const MES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const chip = t => { const c = late(t) ? '#dc2626' : (TG.find(x => x.id === (t.tagIds || [])[0])?.cor || '#9333ea'); return `<div data-drag="${t.id}" data-act="edit" data-id="${t.id}" class="chip text-[10px] md:text-xs truncate rounded px-1 mt-0.5 text-white ${t.concluida ? 'opacity-50 line-through' : ''}" style="background:${c}">${esc(t.titulo)}</div>`; };
+function vCal() {
+  const y = cal.getFullYear(), m = cal.getMonth(), hoje = ymd(new Date());
+  const nav = `<div class="flex items-center justify-between mb-3 gap-2">
+    <button data-act="cnav" data-d="-1" class="w-11 h-11 rounded-full bg-slate-200 dark:bg-slate-700" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+    <button data-act="cmode" class="font-bold text-lg px-3 py-2">${calMode === 'year' ? y : MES[m] + ' ' + y} <i class="fa-solid fa-caret-down text-xs"></i></button>
+    <button data-act="cnav" data-d="1" class="w-11 h-11 rounded-full bg-slate-200 dark:bg-slate-700" aria-label="Próximo"><i class="fa-solid fa-chevron-right"></i></button></div>`;
+  const first = new Date(y, m, 1), start = new Date(y, m, 1 - first.getDay());
+  if (calMode === 'year') return nav + `<div class="grid grid-cols-2 md:grid-cols-4 gap-3">${MES.map((nm, i) => {
+    const f = new Date(y, i, 1), days = new Date(y, i + 1, 0).getDate();
+    return `<div data-act="gomonth" data-m="${i}" class="bg-white dark:bg-slate-800 rounded-xl p-3 cursor-pointer border border-slate-100 dark:border-slate-700"><b class="text-sm">${nm}</b>
+      <div class="grid grid-cols-7 text-[10px] mt-1 text-center">${'<i></i>'.repeat(f.getDay())}${Array.from({length: days}, (_, k) => { const k1 = `${y}-${pad(i+1)}-${pad(k+1)}`, has = T.some(t => !t.concluida && (t.prazo || '').slice(0,10) === k1); return `<span class="${has ? 'bg-tecer-600 text-white rounded-full' : ''} ${k1 === hoje ? 'font-bold underline' : ''}">${k+1}</span>`; }).join('')}</div></div>`;
+  }).join('')}</div>`;
+  let cells = '';
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i); const k = ymd(d), ts = T.filter(t => (t.prazo || '').slice(0, 10) === k);
+    cells += `<div data-day="${k}" data-act="day" class="min-h-[64px] md:min-h-[110px] p-1 border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 ${d.getMonth() !== m ? 'opacity-40' : ''}">
+      <div class="text-xs w-5 h-5 grid place-items-center ${k === hoje ? 'bg-tecer-600 text-white rounded-full' : ''}">${d.getDate()}</div>${ts.slice(0, 3).map(chip).join('')}${ts.length > 3 ? `<div class="text-[10px] text-slate-500">+${ts.length - 3}</div>` : ''}</div>`;
+  }
+  return nav + `<div class="grid grid-cols-7 text-center text-xs text-slate-500 mb-1">${'DSTQQSS'.split('').map(x => `<div>${x}</div>`).join('')}</div><div class="grid grid-cols-7">${cells}</div>`;
+}
+function openDay(k) {
+  const ts = T.filter(t => (t.prazo || '').slice(0, 10) === k);
+  openM(`<h3 class="font-bold mb-3">${new Date(k + 'T12:00').toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'})}</h3>
+    <input id="qa" data-day="${k}" class="inp mb-3" placeholder="Nome da tarefa e Enter">
+    <div class="divide-y divide-slate-100 dark:divide-slate-700">${ts.map(taskRow).join('')}</div>
+    <button data-act="closem" class="w-full mt-3 py-2 text-slate-500">Fechar</button>`);
+  setTimeout(() => $('#qa')?.focus(), 50);
+}
 
-            if(snapshot.empty) {
-                lista.innerHTML = '<div class="p-8 text-center text-slate-500">Nenhuma tarefa encontrada. Mande uma no Telegram!</div>';
-                const emptyText = "Você não tem tarefas pendentes.";
-                titles['visao-geral'].sub = emptyText;
-                if(document.getElementById('visao-geral').classList.contains('block')) {
-                    document.getElementById('page-subtitle').innerText = emptyText;
-                }
-                return;
-            }
+/* disciplinas */
+function vDisc() {
+  if (discId) {
+    const d = G.find(x => x.id === discId); if (!d) { discId = null; return vDisc(); }
+    const m = media(d), ts = T.filter(t => t.disciplinaId === d.id).sort(byDue), av = d.avaliacoes || [];
+    return `<button data-act="dback" class="mb-3 text-tecer-600"><i class="fa-solid fa-arrow-left mr-1"></i>Disciplinas</button>
+      <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">${esc(d.nome)}</h3><div class="text-right"><div class="text-xs text-slate-500">Média ponderada</div><div class="text-2xl font-bold ${m !== null && m < 6 ? 'text-red-500' : 'text-emerald-600'}">${m === null ? '–' : m.toFixed(2)}</div></div></div>
+      ${box(`<div class="p-4 font-bold">Avaliações</div><div class="divide-y divide-slate-100 dark:divide-slate-700">${av.map((a, i) => `<div class="px-4 py-2 flex items-center gap-2 text-sm"><div class="flex-1 min-w-0"><b>${esc(a.nome)}</b> <span class="text-slate-500">${esc(a.tipo)} · peso ${a.peso}</span></div><input type="number" step="0.1" data-nota="${i}" value="${a.nota ?? ''}" placeholder="nota" class="inp !w-20 !min-h-0 !py-1"><button data-act="avdel" data-i="${i}" aria-label="Remover" class="text-red-500 w-9 h-9"><i class="fa-solid fa-trash"></i></button></div>`).join('') || '<p class="px-4 pb-3 text-sm text-slate-500">Nenhuma avaliação ainda.</p>'}</div>
+        <div id="avf" class="p-4 grid grid-cols-2 md:grid-cols-5 gap-2 border-t border-slate-100 dark:border-slate-700"><input name="nome" class="inp col-span-2" placeholder="Nome (ex.: Prova 1)"><select name="tipo" class="inp"><option>Prova</option><option>Trabalho</option><option>Seminário</option><option>Outro</option></select><input name="peso" type="number" step="0.1" class="inp" placeholder="Peso"><input name="nota" type="number" step="0.1" class="inp" placeholder="Nota"><button data-act="avadd" class="col-span-2 md:col-span-5 bg-tecer-600 text-white rounded-lg py-2">Adicionar avaliação</button></div>`)}
+      <div class="flex justify-between items-center mt-6 mb-2"><h4 class="font-bold">Tarefas da disciplina</h4><button data-act="new" data-disc="${d.id}" class="text-tecer-600 text-sm"><i class="fa-solid fa-plus mr-1"></i>Nova tarefa</button></div>
+      ${box(`<div class="divide-y divide-slate-100 dark:divide-slate-700">${ts.map(taskRow).join('') || '<p class="p-6 text-center text-slate-500 text-sm">Sem tarefas vinculadas.</p>'}</div>`)}
+      <button data-act="ddel" class="mt-6 text-sm text-red-500">Excluir disciplina</button>`;
+  }
+  return `<div class="flex gap-2 mb-4"><input id="dn" class="inp" placeholder="Nova disciplina"><button data-act="dadd" class="bg-tecer-600 text-white rounded-lg px-4">Criar</button></div>
+    <div class="grid md:grid-cols-2 gap-3">${G.map(d => { const m = media(d); return `<div data-act="dopen" data-id="${d.id}" class="bg-white dark:bg-slate-800 rounded-xl p-4 cursor-pointer border border-slate-100 dark:border-slate-700 flex justify-between"><div><b>${esc(d.nome)}</b><div class="text-sm text-slate-500">${T.filter(t => t.disciplinaId === d.id && !t.concluida).length} pendente(s)</div></div><div class="text-xl font-bold">${m === null ? '–' : m.toFixed(1)}</div></div>`; }).join('') || '<p class="text-slate-500">Crie sua primeira disciplina acima.</p>'}</div>`;
+}
 
-            snapshot.forEach((docSnap) => {
-                const tarefa = docSnap.data();
-                const id = docSnap.id;
-                
-                if(!tarefa.concluida) pendentes++;
+/* ---------- modal de tarefa ---------- */
+const subRow = (s = {t:'', ok:false}) => `<div class="sub flex items-center gap-2 mb-1"><input type="checkbox" ${s.ok ? 'checked' : ''} class="w-5 h-5 accent-purple-600"><input type="text" value="${esc(s.t)}" class="inp !min-h-0 !py-1" placeholder="Subtarefa"><button data-act="subdel" class="text-red-500 w-8" aria-label="Remover">×</button></div>`;
+function formTask(t = {}, disc = '') {
+  const o = (obj, v) => Object.entries(obj).map(([k, x]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${esc(Array.isArray(x) ? x[0] : x)}</option>`).join('');
+  const lb = 'block text-xs text-slate-500 mt-3 mb-1';
+  return `<h3 class="font-bold text-lg mb-2">${t.id ? 'Editar tarefa' : 'Nova tarefa'}</h3>
+  <input name="titulo" class="inp" placeholder="Nome da tarefa *" value="${esc(t.titulo)}">
+  <label class="${lb}">Descrição</label>
+  <div class="flex gap-1 mb-1"><button data-act="fmt" data-c="bold" class="w-9 h-9 rounded bg-slate-100 dark:bg-slate-700 font-bold">B</button><button data-act="fmt" data-c="italic" class="w-9 h-9 rounded bg-slate-100 dark:bg-slate-700 italic">I</button><button data-act="fmt" data-c="insertUnorderedList" class="w-9 h-9 rounded bg-slate-100 dark:bg-slate-700"><i class="fa-solid fa-list-ul"></i></button></div>
+  <div id="ed" contenteditable="true" class="inp min-h-[80px]">${clean(t.descricao || '')}</div>
+  <div class="grid grid-cols-2 gap-2"><div><label class="${lb}">Data de entrega</label><input name="data" type="date" class="inp" value="${esc((t.prazo || '').slice(0, 10))}"></div>
+  <div><label class="${lb}">Horário</label><input name="hora" type="time" class="inp" value="${esc((t.prazo || '').length > 10 ? t.prazo.slice(11, 16) : '')}"></div>
+  <div><label class="${lb}">Prioridade</label><select name="prioridade" class="inp">${o(PR, t.prioridade || 'media')}</select></div>
+  <div><label class="${lb}">Energia / esforço</label><select name="esforco" class="inp">${o(EF, t.esforco || 'normal')}</select></div></div>
+  <label class="${lb}">Disciplina</label><select name="disc" class="inp"><option value="">Nenhuma (geral)</option>${G.map(d => `<option value="${d.id}" ${(t.disciplinaId || disc) === d.id ? 'selected' : ''}>${esc(d.nome)}</option>`).join('')}</select>
+  <label class="${lb}">Tags</label><div class="flex flex-wrap gap-2">${TG.map(g => `<label class="cursor-pointer"><input type="checkbox" name="tg" value="${g.id}" class="peer hidden" ${(t.tagIds || []).includes(g.id) ? 'checked' : ''}><span class="inline-block px-2 py-1 rounded-full text-xs text-white opacity-40 peer-checked:opacity-100 peer-checked:ring-2 ring-offset-1 ring-slate-800 dark:ring-white" style="background:${esc(g.cor)}">${esc(g.nome)}</span></label>`).join('') || '<span class="text-xs text-slate-500">Crie tags em Configurações.</span>'}</div>
+  <label class="${lb}">Checklist</label><div id="subs">${(t.subtarefas || []).map(subRow).join('')}</div><button data-act="subadd" class="text-sm text-tecer-600">+ Adicionar subtarefa</button>
+  <div class="flex gap-2 mt-5"><button data-act="save" data-id="${t.id || ''}" class="flex-1 bg-tecer-600 text-white rounded-lg py-3 font-medium">Salvar</button>${t.id ? `<button data-act="tdel" data-id="${t.id}" class="px-4 rounded-lg border border-red-300 text-red-500" aria-label="Excluir"><i class="fa-solid fa-trash"></i></button>` : ''}<button data-act="closem" class="px-4 rounded-lg bg-slate-100 dark:bg-slate-700">Cancelar</button></div>`;
+}
 
-                const div = document.createElement('div');
-                div.className = `p-5 transition flex items-center justify-between group ${tarefa.concluida ? 'bg-slate-50 dark:bg-slate-800/50 opacity-50' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'}`;
-                
-                div.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <input type="checkbox" ${tarefa.concluida ? 'checked' : ''} class="check-tarefa w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-tecer-600 focus:ring-tecer-500 cursor-pointer bg-transparent" data-id="${id}">
-                        <div>
-                            <h4 class="font-semibold text-slate-800 dark:text-white ${tarefa.concluida ? 'line-through' : ''}">${tarefa.titulo}</h4>
-                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5"><i class="fa-solid fa-tag text-xs mr-1"></i> ${tarefa.materia}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="inline-block bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold px-2 py-1 rounded mb-1">${tarefa.prazo}</span>
-                    </div>
-                `;
-                lista.appendChild(div);
-            });
+/* ---------- configurações ---------- */
+function openConfig() {
+  openM(`<h3 class="font-bold text-lg mb-3">Configurações</h3>
+  <div class="flex items-center gap-3 mb-3"><div class="w-16 h-16 rounded-full bg-tecer-600 text-white grid place-items-center text-2xl overflow-hidden">${P.foto ? `<img src="${P.foto}" class="w-full h-full object-cover" alt="">` : esc((P.nome || '?')[0])}</div>
+    <label class="text-tecer-600 cursor-pointer">Trocar foto<input type="file" accept="image/*" id="foto" class="hidden"></label></div>
+  <label class="text-xs text-slate-500">Nome de usuário</label><div class="flex gap-2 mb-1"><input id="cn" class="inp" value="${esc(P.nome)}"><button data-act="nome" class="bg-tecer-600 text-white rounded-lg px-4">Salvar</button></div>
+  <p class="text-xs text-slate-500 mb-4">${esc(U.email)}</p>
+  <h4 class="font-bold mt-4 mb-2">Tags</h4>
+  ${TG.map(g => `<div class="flex items-center gap-2 mb-2"><input type="color" data-tf="cor" data-id="${g.id}" value="${esc(g.cor)}" class="w-11 h-11 rounded shrink-0"><input data-tf="nome" data-id="${g.id}" value="${esc(g.nome)}" class="inp"><button data-act="tgdel" data-id="${g.id}" class="text-red-500 w-10" aria-label="Excluir tag"><i class="fa-solid fa-trash"></i></button></div>`).join('')}
+  <div class="flex items-center gap-2"><input type="color" id="nc" value="#9333ea" class="w-11 h-11 rounded shrink-0"><input id="nn" class="inp" placeholder="Nova tag"><button data-act="tgadd" class="bg-tecer-600 text-white rounded-lg px-4 h-11">Criar</button></div>
+  <h4 class="font-bold mt-5 mb-1">Bot do Telegram</h4>
+  <p class="text-sm text-slate-500">Envie este código ao bot para vincular sua conta: <b class="select-all text-slate-800 dark:text-white">${esc(P.codigo || '...')}</b>${P.telegramChatId ? ' (já vinculado)' : ''}</p>
+  <div class="flex gap-2 mt-5"><button data-act="logout" class="flex-1 rounded-lg border border-slate-300 dark:border-slate-600 py-2">Sair da conta</button><button data-act="closem" class="flex-1 rounded-lg bg-tecer-600 text-white py-2">Fechar</button></div>`);
+}
 
-            const subtitleText = `Você tem ${pendentes} tarefa(s) pendente(s).`;
-            titles['visao-geral'].sub = subtitleText;
-            if(document.getElementById('visao-geral').classList.contains('block')) {
-                document.getElementById('page-subtitle').innerText = subtitleText;
-            }
+/* ---------- ações (delegação de eventos) ---------- */
+const goTo = p => { page = p; discId = null; render(); };
+const A = {
+  authmode: () => { regMode = !regMode; $('#a-nome').classList.toggle('hidden', !regMode); $('#a-btn').textContent = regMode ? 'Criar conta' : 'Entrar'; $('#a-troca').textContent = regMode ? 'Já tenho conta' : 'Criar conta'; },
+  auth: async () => {
+    try {
+      const em = $('#a-email').value.trim(), se = $('#a-senha').value;
+      if (regMode) {
+        const nome = $('#a-nome').value.trim(); if (!nome) throw {message: 'Informe um nome de usuário.'};
+        const c = await createUserWithEmailAndPassword(auth, em, se);
+        await setDoc(doc(db, 'users', c.user.uid), {nome, codigo: [...crypto.getRandomValues(new Uint8Array(6))].map(b => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[b % 31]).join(''), criadoEm: serverTimestamp()});
+      } else await signInWithEmailAndPassword(auth, em, se);
+    } catch (x) { $('#a-erro').textContent = x.message; }
+  },
+  logout: () => { closeM(); signOut(auth); },
+  tema: () => { localStorage.tema = document.documentElement.classList.toggle('dark') ? 'dark' : 'light'; },
+  go: el => goTo(el.dataset.p),
+  config: openConfig, closem: closeM, closebg: (el, e) => { if (e.target === el) closeM(); },
+  new: el => { openM(formTask({}, el.dataset.disc || '')); },
+  edit: el => { const t = T.find(x => x.id === el.dataset.id); if (t) openM(formTask(t)); },
+  fmt: el => document.execCommand(el.dataset.c),
+  subadd: () => $('#subs').insertAdjacentHTML('beforeend', subRow()),
+  subdel: el => el.closest('.sub').remove(),
+  toggle: async el => updateDoc(ref('tarefas', el.dataset.id), {concluida: el.checked, concluidaEm: el.checked ? serverTimestamp() : null}),
+  save: async el => {
+    const f = $('#mbox'), q = s => f.querySelector(s), titulo = q('[name=titulo]').value.trim();
+    if (!titulo) return q('[name=titulo]').focus();
+    const dt = q('[name=data]').value, hr = q('[name=hora]').value;
+    const data = {titulo, descricao: clean($('#ed').innerHTML), prazo: dt ? (hr ? `${dt}T${hr}` : dt) : null, prioridade: q('[name=prioridade]').value, esforco: q('[name=esforco]').value,
+      disciplinaId: q('[name=disc]').value || null, tagIds: [...f.querySelectorAll('[name=tg]:checked')].map(x => x.value),
+      subtarefas: [...f.querySelectorAll('.sub')].map(r => ({t: r.querySelector('[type=text]').value.trim(), ok: r.querySelector('[type=checkbox]').checked})).filter(s => s.t)};
+    el.dataset.id ? await updateDoc(ref('tarefas', el.dataset.id), data) : await addDoc(col('tarefas'), {...data, concluida: false, criadoEm: serverTimestamp(), origem: 'Web'});
+    closeM();
+  },
+  tdel: async el => { if (confirm('Excluir esta tarefa?')) { await deleteDoc(ref('tarefas', el.dataset.id)); closeM(); } },
+  cnav: el => { const d = +el.dataset.d; calMode === 'year' ? cal.setFullYear(cal.getFullYear() + d) : cal.setMonth(cal.getMonth() + d, 1); render(); },
+  cmode: () => { calMode = calMode === 'year' ? 'month' : 'year'; render(); },
+  gomonth: el => { cal.setMonth(+el.dataset.m, 1); calMode = 'month'; render(); },
+  day: el => openDay(el.dataset.day),
+  hf: el => { histF = el.dataset.k; render(); },
+  dadd: async () => { const n = $('#dn').value.trim(); if (n) await addDoc(col('disciplinas'), {nome: n, avaliacoes: [], criadoEm: serverTimestamp()}); },
+  dopen: el => { discId = el.dataset.id; render(); }, dback: () => { discId = null; render(); },
+  ddel: async () => { if (confirm('Excluir a disciplina? As tarefas continuam, sem vínculo.')) { const id = discId; discId = null; await deleteDoc(ref('disciplinas', id)); } },
+  avadd: async () => {
+    const f = $('#avf'), v = n => f.querySelector(`[name=${n}]`).value, d = G.find(x => x.id === discId); if (!v('nome').trim()) return;
+    await updateDoc(ref('disciplinas', discId), {avaliacoes: [...(d.avaliacoes || []), {nome: v('nome').trim(), tipo: v('tipo'), peso: +v('peso') || 1, nota: v('nota') === '' ? null : +v('nota')}]});
+  },
+  avdel: async el => { const d = G.find(x => x.id === discId); await updateDoc(ref('disciplinas', discId), {avaliacoes: d.avaliacoes.filter((_, i) => i !== +el.dataset.i)}); },
+  nome: async () => { const n = $('#cn').value.trim(); if (n) { await updateDoc(doc(db, 'users', U.uid), {nome: n}); closeM(); } },
+  tgadd: async () => { const n = $('#nn').value.trim(); if (n) { await addDoc(col('tags'), {nome: n, cor: $('#nc').value}); setTimeout(openConfig, 300); } },
+  tgdel: async el => { if (confirm('Excluir a tag?')) { await deleteDoc(ref('tags', el.dataset.id)); setTimeout(openConfig, 300); } }
+};
+document.addEventListener('click', async e => {
+  if (window.__moved) { window.__moved = 0; return; }
+  const el = e.target.closest('[data-act]'); if (!el || el.tagName === 'SELECT') return;
+  try { await (A[el.dataset.act] || (() => {}))(el, e); } catch (x) { alert('Erro: ' + x.message); }
+});
+document.addEventListener('change', async e => {
+  const t = e.target;
+  if (t.dataset.act === 'hfsel') { histF = t.value || 'all'; render(); }
+  if (t.dataset.nota !== undefined) { const d = G.find(x => x.id === discId), a = d.avaliacoes.map((x, i) => i === +t.dataset.nota ? {...x, nota: t.value === '' ? null : +t.value} : x); await updateDoc(ref('disciplinas', discId), {avaliacoes: a}); }
+  if (t.dataset.tf) await updateDoc(ref('tags', t.dataset.id), {[t.dataset.tf]: t.value});
+  if (t.id === 'foto' && t.files[0]) { // reduz a imagem para 160px e guarda no próprio documento do usuário (sem Storage)
+    const img = new Image(); img.src = URL.createObjectURL(t.files[0]); await img.decode();
+    const c = document.createElement('canvas'); c.width = c.height = 160; const s = Math.min(img.width, img.height);
+    c.getContext('2d').drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 160, 160);
+    await updateDoc(doc(db, 'users', U.uid), {foto: c.toDataURL('image/jpeg', .8)}); setTimeout(openConfig, 300);
+  }
+});
+document.addEventListener('keydown', async e => {
+  if (e.key === 'Enter' && e.target.id === 'qa' && e.target.value.trim()) {
+    const k = e.target.dataset.day; await addDoc(col('tarefas'), {titulo: e.target.value.trim(), prazo: k, prioridade: 'media', esforco: 'normal', descricao: '', subtarefas: [], tagIds: [], disciplinaId: null, concluida: false, criadoEm: serverTimestamp(), origem: 'Web'});
+    setTimeout(() => openDay(k), 250);
+  }
+  if (e.key === 'Escape') closeM();
+});
 
-            // Atualiza status no Firebase ao clicar na checkbox
-            document.querySelectorAll('.check-tarefa').forEach(checkbox => {
-                checkbox.addEventListener('change', async (e) => {
-                    const tarefaId = e.target.getAttribute('data-id');
-                    await updateDoc(doc(db, "tarefas", tarefaId), { concluida: e.target.checked });
-                });
-            });
-        });
-    </script>
+/* ---------- arrastar e soltar (mouse e toque, via Pointer Events) ---------- */
+document.addEventListener('pointerdown', e => {
+  const c = e.target.closest('[data-drag]'); if (!c || e.button > 0) return;
+  const x0 = e.clientX, y0 = e.clientY; let on = 0, over = null;
+  const clr = () => document.querySelectorAll('.drop').forEach(x => x.classList.remove('drop'));
+  const mv = ev => {
+    if (!on) { if (Math.hypot(ev.clientX - x0, ev.clientY - y0) < 8) return; on = 1; c.style.opacity = .4; c.style.pointerEvents = 'none'; }
+    ev.preventDefault(); clr(); over = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('[data-day]'); over?.classList.add('drop');
+  };
+  const up = async () => {
+    document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
+    c.style.opacity = ''; c.style.pointerEvents = ''; clr();
+    if (!on) return; window.__moved = 1; setTimeout(() => window.__moved = 0, 80);
+    const t = T.find(x => x.id === c.dataset.drag);
+    if (over && t && over.dataset.day !== (t.prazo || '').slice(0, 10)) await updateDoc(ref('tarefas', t.id), {prazo: over.dataset.day + ((t.prazo || '').length > 10 ? t.prazo.slice(10) : '')});
+  };
+  document.addEventListener('pointermove', mv, {passive: false}); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+});
+</script>
 </body>
 </html>
